@@ -9,10 +9,10 @@ export class LocalStrategy extends PassportStrategy(Strategy){
 
     constructor(private authService: AuthService){
         super({
-            usernameField: 'username',
+            usernameField: 'identifier',
         });
     }
-    validate(username:string, password: string){
-        return this.authService.validateUser(username, password);
+    validate(identifier:string,  password: string){
+        return this.authService.validateUser(identifier,  password);
     }
 }

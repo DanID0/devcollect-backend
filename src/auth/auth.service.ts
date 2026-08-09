@@ -10,8 +10,8 @@ export class AuthService {
   constructor(private userSevice: UserService){}
 
 
-  async validateUser(username: string, password: string){
-    const user = await this.userSevice.findByUsername(username);
+  async validateUser(identifier: string,  password: string){
+    const user = await this.userSevice.findByUsernameOrEmail(identifier);
     if(!user) throw new UnauthorizedException("User not found!");
     const isPasswordMatch = await compare(password, user.passwordHashed)
     if (!isPasswordMatch) throw new UnauthorizedException("Invalid credentials")

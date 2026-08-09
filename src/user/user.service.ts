@@ -48,6 +48,16 @@ export class UserService {
       }
     })
   }
+  findByUsernameOrEmail(identifier: string){
+    return this.prismaService.user.findFirst({
+      where: {
+      OR: [
+        { email: identifier },
+        { username:identifier },
+      ],
+    }
+    })
+  }
   findById(id: string){
     return this.prismaService.user.findUnique({
       where: {
