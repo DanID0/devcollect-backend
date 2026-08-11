@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, HttpCode, HttpStatus, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, HttpCode, HttpStatus, Request, Response } from '@nestjs/common';
 import { AuthService } from './auth.service.js';
 import { CreateAuthDto } from './dto/create-auth.dto.js';
 import { UpdateAuthDto } from './dto/update-auth.dto.js';
@@ -25,11 +25,14 @@ export class AuthController {
   }
 
   @Post('logout')
-  async logout(@Request() req) {
-    req.session.destroy();
-    return {msg: "The user has logged out"}
-  }
+  async logout(@Request() req, @Response() res) {
+    req.session.destroy(() => {
+      res.clearCookie('connect.sid', {
+        path: '/',
+      });
 
+    });
+  }
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.authService.findOne(+id);
