@@ -29,8 +29,8 @@ export class AuthController {
     req.session.destroy(() => {
       res.clearCookie('connect.sid', {
         path: '/',
-      });
-
+      }),
+      res.json({ message: 'Logged out' })
     });
   }
   @Get(':id')
