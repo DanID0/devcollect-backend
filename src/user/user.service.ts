@@ -1,8 +1,11 @@
 import { Injectable, ConflictException, } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
-import { User } from '../../generated/prisma/browser.js';
+import { Prisma } from '../../generated/prisma/client.js';
+import { PrismaError } from '../common/utils/prisma-error.js';
+import { UserNotFoundException } from '../common/exceptions/user-not-found.exception.js';
 import { PrismaService } from '../prisma/prisma.service.js';
+
 import * as bcrypt from 'bcrypt';
 @Injectable()
 export class UserService {
@@ -67,17 +70,51 @@ export class UserService {
     })
   }
 
-  findAll() {
-    return `This action returns all user`;
-  }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
-  }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+async updateUser(id: string , updateUserDto: UpdateUserDto){
+  const username = updateUserDto.username;
+  const email = updateUserDto.email.toLowerCase();
+  const existing = await this.prismaService.user.findFirst({
+    where: {
+      AND: [
+        { OR: [{ username }, { email }] },
+        { NOT: { id: id } }
+      ]
+    },
+    select: { id: true, username: true, email: true },
+  });
+  if (existing) {
+    if (existing.username === username) {
+      throw new ConflictException('Username is already taken');
+    }
+    throw new ConflictException('Email is already taken');
   }
+try {
+  return await this.prismaService.user.update({
+    data:{
+      ...updateUserDto,
+      id: undefined,
+    },
+    where:{
+      id,
+    },
+  });
+} catch (error) {
+  if (
+    error instanceof Prisma.PrismaClientKnownRequestError &&
+    error.code === PrismaError.RecordDoesNotExist
+  ) {
+    throw new UserNotFoundException(id);
+  }
+  if(
+    error instanceof Prisma.PrismaClientKnownRequestError &&
+    error.code === PrismaError.UniqueConstraintFailed){
+    throw new ConflictException("This email or username is already taken")
+  }
+  throw error;
+}
+}
 
   remove(id: number) {
     return `This action removes a #${id} user`;

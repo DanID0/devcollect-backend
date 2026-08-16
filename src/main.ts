@@ -3,7 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module.js';
 import session from 'express-session';
 import passport from 'passport';
-
+import connectPgSimple from 'connect-pg-simple';
 config();
 async function bootstrap() {
   const sessionSecret = process.env.SESSION_SECRET;
@@ -11,8 +11,12 @@ async function bootstrap() {
   throw new Error('SESSION_SECRET is not defined in environment variables');
 }
   const app = await NestFactory.create(AppModule);
+  const pgSession = connectPgSimple(session);
   app.use(
     session({
+      store: new pgSession({
+        createTableIfMissing: true
+      }),
       secret: sessionSecret,
       resave: false,
       saveUninitialized: false,
