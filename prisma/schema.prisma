@@ -18,6 +18,7 @@ model User {
   passwordHashed String
   email String @unique
   avatarUrl String?
+  profileDescription String?
   role Role @default(USER)
 }
 

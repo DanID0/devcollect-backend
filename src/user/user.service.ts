@@ -66,15 +66,15 @@ export class UserService {
       where: {
         id
       },
-      select: { id: true, username: true, email: true, avatarUrl: true, role: true }
+      select: { id: true, username: true, email: true,  avatarUrl: true, role: true }
     })
   }
 
 
 
 async updateUser(id: string , updateUserDto: UpdateUserDto){
-  const username = updateUserDto.username;
-  const email = updateUserDto.email.toLowerCase();
+  const username = updateUserDto.username?.trim();
+  const email = updateUserDto.email?.trim().toLowerCase();
   const existing = await this.prismaService.user.findFirst({
     where: {
       AND: [

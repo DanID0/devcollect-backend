@@ -7,12 +7,16 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
     @IsString()
     @MinLength(3)
     @IsOptional()
-    username!:string;
+    username?:string;
 
     @IsString()
     @IsEmail()
     @IsOptional()
-    email!: string;
+    email?: string;
+
+    // @IsString()
+    // @IsOptional()
+    // description?: string | null;
 
     @IsString()
     @IsOptional()
