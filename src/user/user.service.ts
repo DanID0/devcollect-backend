@@ -7,12 +7,15 @@ import { UserNotFoundException } from '../common/exceptions/user-not-found.excep
 import { PrismaService } from '../prisma/prisma.service.js';
 
 import * as bcrypt from 'bcrypt';
+import { buffer } from 'stream/consumers';
+import { handleUpload } from '../common/cloudinary/cloudinary.js';
 @Injectable()
 export class UserService {
   constructor(private prismaService: PrismaService) {}
 
   async create(createUserDto: CreateUserDto) {
     const username = createUserDto.username.trim();
+
     const email = createUserDto.email.trim().toLowerCase();
     const existing = await this.prismaService.user.findFirst({
       where: {
@@ -22,7 +25,7 @@ export class UserService {
     });
     if (existing) {
       if (existing.username === username) {
-        throw new BadRequestException('Username not found');
+        throw new BadRequestException('Username was already taken');
       }
       throw new BadRequestException('Email was already taken');
     }
@@ -83,12 +86,13 @@ export class UserService {
 
   async updateUser(id: string, updateUserDto: UpdateUserDto) {
     const username = updateUserDto.username?.trim();
+    const profileDescription = updateUserDto.profileDescription?.trim();
     const email = updateUserDto.email?.trim().toLowerCase();
     const existing = await this.prismaService.user.findFirst({
       where: {
-        AND: [{ OR: [{ username }, { email }] }, { NOT: { id: id } }],
+        AND: [{ OR: [{ username }, { email }, { profileDescription }] }, { NOT: { id: id } }],
       },
-      select: { id: true, username: true, email: true },
+      select: { id: true, username: true, email: true, profileDescription: true },
     });
     if (existing) {
       if (existing.username === username) {
@@ -122,7 +126,30 @@ export class UserService {
       throw error;
     }
   }
-
+  async uploadAvatar(id: string, image: Express.Multer.File) {
+    const b64 = Buffer.from(image.buffer).toString('base64');
+    const dataUrl = 'data:' + image.mimetype + ';base64,' + b64;
+    const cloudinaryRes = await handleUpload(dataUrl);
+    try {
+      return await this.prismaService.user.update({
+        data: {
+          avatarUrl: cloudinaryRes.secure_url,
+          id: undefined,
+        },
+        where: {
+          id,
+        },
+      });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === PrismaError.RecordDoesNotExist
+      ) {
+        throw new UserNotFoundException(id);
+      }
+      throw error;
+    }
+  }
   remove(id: number) {
     return `This action removes a #${id} user`;
   }
