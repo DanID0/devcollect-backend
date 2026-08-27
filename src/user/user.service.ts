@@ -9,6 +9,10 @@ import { PrismaService } from '../prisma/prisma.service.js';
 import * as bcrypt from 'bcrypt';
 import { buffer } from 'stream/consumers';
 import { handleUpload } from '../common/cloudinary/cloudinary.js';
+import { UpdateUserPasswordDto } from './dto/update-userPassword.dto.js';
+import { User } from '../../generated/prisma/browser.js';
+import { UserController } from './user.controller.js';
+import { hash } from 'crypto';
 @Injectable()
 export class UserService {
   constructor(private prismaService: PrismaService) {}
@@ -152,5 +156,32 @@ export class UserService {
   }
   remove(id: number) {
     return `This action removes a #${id} user`;
+  }
+
+  async changePassword(id: string, changePasswordDto: UpdateUserPasswordDto) {
+    const user = await this.prismaService.user.findUnique({ where: { id } });
+    if (!user) {
+      throw new BadRequestException('User does not exist');
+    }
+    const compareResult = await bcrypt.compare(
+      changePasswordDto.currentPassword,
+      user.passwordHashed,
+    );
+
+    if (compareResult == false) {
+      throw new BadRequestException('Current password does not match');
+    }
+
+    const hashedPasswordNew = await bcrypt.hash(changePasswordDto.newPassword, 10);
+
+    await this.prismaService.user.update({
+      where: {
+        id,
+      },
+      data: {
+        passwordHashed: hashedPasswordNew,
+      },
+    });
+    return 'Password updated successfully.';
   }
 }

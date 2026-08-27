@@ -19,6 +19,7 @@ import { UpdateUserDto } from './dto/update-user.dto.js';
 import { SessionAuthGuard } from '../auth/auth.guard.js';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Multer } from 'multer';
+import { UpdateUserPasswordDto } from './dto/update-userPassword.dto.js';
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
@@ -60,13 +61,19 @@ export class UserController {
   // findOne(@Param('id') id: string) {
   //   return this.userService.findOne(+id);
   // }
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.userService.updateUser(id, updateUserDto);
+  @UseGuards(SessionAuthGuard)
+  @Patch()
+  update(@Request() req, @Body() updateUserDto: UpdateUserDto) {
+    return this.userService.updateUser(req.user.id, updateUserDto);
+  }
+  @UseGuards(SessionAuthGuard)
+  @Patch('password')
+  updatePassword(@Request() req, @Body() updatePasswordDto: UpdateUserPasswordDto) {
+    return this.userService.changePassword(req.user.id, updatePasswordDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.userService.remove(+id);
-  }
+  // @Delete(':id')
+  // remove(@Param('id') id: string) {
+  //   return this.userService.remove(+id);
+  // }
 }
