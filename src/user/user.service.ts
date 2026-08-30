@@ -182,6 +182,8 @@ export class UserService {
         passwordHashed: hashedPasswordNew,
       },
     });
-    return 'Password updated successfully.';
+    return {
+      message: 'Password updated successfully',
+    };
   }
 }

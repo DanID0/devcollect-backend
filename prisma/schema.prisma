@@ -11,7 +11,10 @@ enum Role {
   USER
   ADMIN
 }
-
+enum questionType {
+  multiple_choice
+  short_answer
+}
 model User {
   id String @id @default(uuid())
   username String @unique
@@ -20,6 +23,74 @@ model User {
   avatarUrl String?
   profileDescription String?
   role Role @default(USER)
+  avatarPublicId String?
+  guides Guide[]
+  userProgress UserProgress[]
+}
+model Category {
+    id String @id @default(uuid())
+    name String @unique
+    guides Guide[]
+}
+model Tag {
+    id String @id @default(uuid())
+    name String @unique
+    guides Guide[]
+}
+model Guide {
+  id String @id @default(uuid())
+  title String
+  description String
+  text String
+  authorId String
+  author User @relation(fields: [authorId], references: [id])
+  categoryId String
+  category Category @relation(fields: [categoryId], references: [id])
+  tags Tag[]
+  createdAt DateTime @default(now())
+  quiz Quiz?
+  userProgress UserProgress[]
 }
 
 
+model Quiz {
+  id String @id @default(uuid())
+  guideId String @unique
+  guide Guide @relation(fields: [guideId], references: [id])
+  questions Question[]
+}
+
+model Question {
+  id String @id @default(uuid())
+  quizId String
+  quiz Quiz @relation(fields: [quizId], references: [id])
+  type questionType
+  prompt String
+  options Option[]
+  acceptableAnswer AcceptableAnswer[]
+}
+
+model Option {
+  id String @id @default(uuid())
+  questionId String
+  question Question @relation(fields: [questionId], references: [id])
+  text String
+  isCorrect Boolean
+}
+model AcceptableAnswer {
+  id String @id @default(uuid())
+  questionId String
+  question Question @relation(fields: [questionId], references: [id])
+  answerText String
+}
+
+model UserProgress {
+  id String @id @default(uuid())
+  userId String
+  user User @relation(fields: [userId], references: [id]) 
+  guideId String
+  guide Guide @relation(fields: [guideId], references: [id]) 
+  @@unique([userId, guideId])
+  completed Boolean
+  updatedAt DateTime @updatedAt
+}
