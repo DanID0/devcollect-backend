@@ -8,14 +8,15 @@ config();
 async function bootstrap() {
   const sessionSecret = process.env.SESSION_SECRET;
   if (!sessionSecret) {
-  throw new Error('SESSION_SECRET is not defined in environment variables');
-}
+    throw new Error('SESSION_SECRET is not defined in environment variables');
+  }
   const app = await NestFactory.create(AppModule);
   const pgSession = connectPgSimple(session);
+  // app.useGlobalGuards(new AdminGuard());
   app.use(
     session({
       store: new pgSession({
-        createTableIfMissing: true
+        createTableIfMissing: true,
       }),
       secret: sessionSecret,
       resave: false,
@@ -23,20 +24,17 @@ async function bootstrap() {
       cookie: {
         httpOnly: true,
         secure: false,
-        maxAge: 1000 * 60 * 60 * 24 * 7 
-      }
+        maxAge: 1000 * 60 * 60 * 24 * 7,
+      },
     }),
   );
-  app.use(passport.initialize())
-  app.use(passport.session()) 
-  app.enableCors({
+  app.use(passport.initialize());
+  app.use(passport.session());
+  (app.enableCors({
     origin: 'http://localhost:4200',
     credentials: true,
   }),
-
-  await app.listen(3000)
- 
+    await app.listen(3000));
 }
 
 bootstrap();
-
