@@ -8,12 +8,14 @@ import {
   Delete,
   UseGuards,
   Request,
+  Query,
 } from '@nestjs/common';
 import { GuideService } from './guide.service.js';
 import { CreateGuideDto } from './dto/create-guide.dto.js';
 import { UpdateGuideDto } from './dto/update-guide.dto.js';
 import { SessionAuthGuard } from '../auth/auth.guard.js';
 import { AdminGuard } from '../common/guards/admin.guard.js';
+import { findGuidesQueryDto } from './dto/find-guides-query.dto.js';
 
 @Controller('guide')
 export class GuideController {
@@ -25,8 +27,8 @@ export class GuideController {
   }
 
   @Get()
-  findAll() {
-    return this.guideService.findAll();
+  findAll(@Query() query: findGuidesQueryDto) {
+    return this.guideService.findAll(query);
   }
 
   @Get(':id')

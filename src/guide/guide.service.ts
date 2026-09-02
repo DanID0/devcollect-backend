@@ -1,7 +1,8 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, Query } from '@nestjs/common';
 import { CreateGuideDto } from './dto/create-guide.dto.js';
 import { UpdateGuideDto } from './dto/update-guide.dto.js';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { findGuidesQueryDto } from './dto/find-guides-query.dto.js';
 
 @Injectable()
 export class GuideService {
@@ -20,8 +21,13 @@ export class GuideService {
     });
   }
 
-  findAll() {
-    return `This action returns all guide`;
+  findAll(query: findGuidesQueryDto) {
+    return this.prismaService.guide.findMany({
+      where: {
+        ...(query.categoryId ? { categoryId: query.categoryId } : {}),
+        ...(query.tagId ? { tagId: query.tagId } : {}),
+      },
+    });
   }
 
   findOne(id: number) {
