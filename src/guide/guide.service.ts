@@ -25,8 +25,17 @@ export class GuideService {
     return this.prismaService.guide.findMany({
       where: {
         ...(query.categoryId ? { categoryId: query.categoryId } : {}),
-        ...(query.tagId ? { tagId: query.tagId } : {}),
+        ...(query.tagIds ? { tags: { some: { id: { in: query.tagIds } } } } : {}),
+        ...(query.search
+          ? {
+              OR: [
+                { description: { contains: query.search, mode: 'insensitive' } },
+                { title: { contains: query.search, mode: 'insensitive' } },
+              ],
+            }
+          : {}),
       },
+      orderBy: {},
     });
   }
 

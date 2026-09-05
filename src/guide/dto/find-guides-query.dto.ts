@@ -1,9 +1,23 @@
-import { IsString } from 'class-validator';
+import { IsOptional, IsString } from 'class-validator';
 
 export class findGuidesQueryDto {
+  @IsOptional()
   @IsString()
   categoryId?: string;
 
+  @IsOptional()
   @IsString()
-  tagId?: string;
+  tagIds?: string[];
+
+  @IsOptional()
+  @IsString()
+  search?: string;
+
+  @IsOptional()
+  @IsString()
+  sortBy?: string;
+
+  @IsOptional()
+  @IsString()
+  sortOrder?: string;
 }
