@@ -22,6 +22,13 @@ export class GuideService {
   }
 
   findAll(query: findGuidesQueryDto) {
+    const sortOrder = query.sortOrder === 'asc' ? 'asc' : 'desc';
+    let sortField = '';
+    if (query.sortBy === 'title') {
+      sortField = 'title';
+    } else {
+      sortField = 'createdAt';
+    }
     return this.prismaService.guide.findMany({
       where: {
         ...(query.categoryId ? { categoryId: query.categoryId } : {}),
@@ -35,12 +42,48 @@ export class GuideService {
             }
           : {}),
       },
-      orderBy: {},
+      orderBy: [
+        {
+          [sortField]: sortOrder,
+        },
+      ],
     });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} guide`;
+  findGuideById(id: string) {
+    return this.prismaService.guide.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        author: {
+          select: {
+            username: true,
+          },
+        },
+        category: true,
+        tags: true,
+        quiz: {
+          select: {
+            questions: {
+              select: {
+                type: true,
+                prompt: true,
+                options: {
+                  select: {
+                    id: true,
+                    text: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
   }
 
   update(id: number, updateGuideDto: UpdateGuideDto) {

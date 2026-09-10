@@ -32,8 +32,8 @@ export class GuideController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.guideService.findOne(+id);
+  findGuideById(@Param('id') id: string) {
+    return this.guideService.findGuideById(id);
   }
 
   @Patch(':id')
